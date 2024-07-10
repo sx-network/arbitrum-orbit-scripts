@@ -1,0 +1,25 @@
+{
+  "name": "orbit-scripts-deposit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/eth-deposit.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.3"
+  },
+  "dependencies": {
+    "@arbitrum/sdk": "^3.6.0",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "arb-shared-dependencies": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "ethers": "5.7.2"
+  }
+}
