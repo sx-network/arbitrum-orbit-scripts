@@ -77,7 +77,8 @@ const main = async () => {
   // Add the default local network configuration to the SDK
   addDefaultLocalNetwork();
 
-  const ethToL2DepositAmount = utils.parseEther("0.0001");
+  const ethToL2DepositAmount = utils.parseEther("0.01");
+  console.log("Eth deposit amount is:", ethToL2DepositAmount.toString());
 
   // Set up the Erc20Bridger
   const ethBridger = new EthBridger(l2Network);
@@ -90,10 +91,19 @@ const main = async () => {
 
   console.log(`your L2 ETH balance is ${result.toString()}`);
 
-  const depositTx = await ethBridger.deposit({
-    amount: ethToL2DepositAmount,
+  // Optional transaction overrides
+  const overrides = {
+    gasLimit: 2000000, // Example gas limit
+  };
+
+  // Create the deposit parameters object
+  const depositParams = {
     l1Signer: l1Wallet,
-  });
+    amount: ethToL2DepositAmount,
+    overrides: overrides, // This is optional
+  };
+
+  const depositTx = await ethBridger.deposit(depositParams);
 
   const depositRec = await depositTx.wait();
   console.warn("deposit L1 receipt is:", depositRec.transactionHash);
