@@ -7,10 +7,10 @@ import {
   L2Network,
   addDefaultLocalNetwork,
 } from "@arbitrum/sdk";
-import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
+//import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
 dotenv.config();
-requireEnvVariables(["DEVNET_PRIVKEY", "L1RPC", "L2RPC", "TOKEN_ADDRESS"]);
+//requireEnvVariables(["DEVNET_PRIVKEY", "L1RPC", "L2RPC", "TOKEN_ADDRESS"]);
 
 console.log("Environment Variables Loaded");
 

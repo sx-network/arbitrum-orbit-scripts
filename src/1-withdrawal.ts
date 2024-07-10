@@ -8,9 +8,12 @@ import {
   addCustomNetwork,
   L2Network,
   addDefaultLocalNetwork,
+  L2TransactionReceipt,
+  L2ToL1MessageStatus,
 } from "@arbitrum/sdk";
 //import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
+import { parseEther } from "ethers/lib/utils";
 dotenv.config();
 //requireEnvVariables(["DEVNET_PRIVKEY", "L1RPC", "L2RPC", "TOKEN_ADDRESS"]);
 
@@ -25,11 +28,12 @@ const l1Provider = new providers.JsonRpcProvider(process.env.L1RPC);
 const l2Provider = new providers.JsonRpcProvider(process.env.L2RPC);
 const l1Wallet = new Wallet(walletPrivateKey, l1Provider);
 const l2Wallet = new Wallet(walletPrivateKey, l2Provider);
-// const l2Wallet = new Wallet(walletPrivateKey, l2Provider);
 
+// const l2Wallet = new Wallet(walletPrivateKey, l2Provider);
+const ethFromL2WithdrawAmount = parseEther('0.000001')
 const main = async () => {
   // await arbLog("Deposit token using Arbitrum SDK");
-
+  const from = await l2Wallet.getAddress()
   const l2Network: L2Network = {
     chainID: 88153591557,
     confirmPeriodBlocks: 20,
@@ -75,66 +79,48 @@ const main = async () => {
   });
 
 
-  const ethToL2DepositAmount = utils.parseEther("0.01");
-  console.log("Eth deposit amount is:", ethToL2DepositAmount.toString());
 
-  // Set up the Erc20Bridger
-  const ethBridger = new EthBridger(l2Network);
-
-  console.log("Eth Bridger Set Up");
-  //   console.log(ethBridger);
-
-  const l2WalletInitialEthBalance = await l2Wallet.getBalance();
-  const result = utils.formatEther(l2WalletInitialEthBalance);
-
-  console.log(`your L2 ETH balance is ${result.toString()}`);
-
-  // Optional transaction overrides
-  const overrides = {
-    gasLimit: 2000000, // Example gas limit
-  };
-
-  // Create the deposit parameters object
-  const depositParams = {
-    l1Signer: l1Wallet,
-    amount: ethToL2DepositAmount,
-    overrides: overrides, // This is optional
-  };
-
-  const depositTx = await ethBridger.deposit(depositParams);
-
-  const depositRec = await depositTx.wait();
-  console.warn("deposit L1 receipt is:", depositRec.transactionHash);
+  const ethBridger = new EthBridger(l2Network)
 
   /**
-   * With the transaction confirmed on L1, we now wait for the L2 side (i.e., balance credited to L2) to be confirmed as well.
-   * Here we're waiting for the Sequencer to include the L2 message in its off-chain queue. The Sequencer should include it in under 10 minutes.
+   * First, let's check our L2 wallet's initial ETH balance and ensure there's some ETH to withdraw
    */
-  console.warn("Now we wait for L2 side of the transaction to be executed ⏳");
-  const l2Result = await depositRec.waitForL2(l2Provider);
-  /**
-   * The `complete` boolean tells us if the l1 to l2 message was successful
-   */
-  l2Result.complete
-    ? console.log(
-        `L2 message successful: status: ${
-          EthDepositStatus[await l2Result.message.status()]
-        }`
-      )
-    : console.log(
-        `L2 message failed: status ${
-          EthDepositStatus[await l2Result.message.status()]
-        }`
-      );
+  const l2WalletInitialEthBalance = await l2Wallet.getBalance()
+
+  if (l2WalletInitialEthBalance.lt(ethFromL2WithdrawAmount)) {
+    console.log(
+      `Oops - not enough ether; fund your account L2 wallet currently ${l2Wallet.address} with at least 0.000001 ether`
+    )
+    process.exit(1)
+  }
+  console.log('Wallet properly funded: initiating withdrawal now')
 
   /**
-   * Our l2Wallet ETH balance should be updated now
+   * We're ready to withdraw ETH using the ethBridger instance from Arbitrum SDK
+   * It will use our current wallet's address as the default destination
    */
-  const l2WalletUpdatedEthBalance = await l2Wallet.getBalance();
+
+  const withdrawTx = await ethBridger.withdraw({
+    from,
+    amount: ethFromL2WithdrawAmount,
+    l2Signer: l2Wallet,
+    destinationAddress: l2Wallet.address,
+  })
+  const withdrawRec = await withdrawTx.wait()
+
+  /**
+   * And with that, our withdrawal is initiated! No additional time-sensitive actions are required.
+   * Any time after the transaction's assertion is confirmed, funds can be transferred out of the bridge via the outbox contract
+   * We'll display the withdrawals event data here:
+   */
+  console.log(`Ether withdrawal initiated! 🥳 txHash: ${withdrawRec.transactionHash}`)
+
+  const withdrawEventsData = await withdrawRec.getL2ToL1Events()
+  console.log('Withdrawal data:', withdrawEventsData)
   console.log(
-    `your L2 ETH balance is updated from ${l2WalletInitialEthBalance.toString()} to ${l2WalletUpdatedEthBalance.toString()}`
-  );
-};
+    `To claim funds (after dispute period), see outbox-execute repo 🫡`
+  )
+}
 
 main().catch((err) => {
   console.error(err);

@@ -8,6 +8,8 @@ import {
   addCustomNetwork,
   L2Network,
   addDefaultLocalNetwork,
+  L2TransactionReceipt,
+  L2ToL1MessageStatus,
 } from "@arbitrum/sdk";
 //import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
@@ -75,65 +77,32 @@ const main = async () => {
   });
 
 
-  const ethToL2DepositAmount = utils.parseEther("0.01");
-  console.log("Eth deposit amount is:", ethToL2DepositAmount.toString());
+  let txnHash= "0xcc4b67573a8fd6bd8e467a315a3486e603f98dec959318f0129aa8b7d82726aa";
 
-  // Set up the Erc20Bridger
-  const ethBridger = new EthBridger(l2Network);
+  const receipt = await l2Provider.getTransactionReceipt(txnHash)
 
-  console.log("Eth Bridger Set Up");
-  //   console.log(ethBridger);
 
-  const l2WalletInitialEthBalance = await l2Wallet.getBalance();
-  const result = utils.formatEther(l2WalletInitialEthBalance);
 
-  console.log(`your L2 ETH balance is ${result.toString()}`);
+  const l2Receipt = new L2TransactionReceipt(receipt)
 
-  // Optional transaction overrides
-  const overrides = {
-    gasLimit: 2000000, // Example gas limit
-  };
 
-  // Create the deposit parameters object
-  const depositParams = {
-    l1Signer: l1Wallet,
-    amount: ethToL2DepositAmount,
-    overrides: overrides, // This is optional
-  };
+  const messages = await l2Receipt.getL2ToL1Messages(l1Wallet)
+  const l2ToL1Msg = messages[0]
 
-  const depositTx = await ethBridger.deposit(depositParams);
+  if ((await l2ToL1Msg.status(l2Provider)) == L2ToL1MessageStatus.EXECUTED) {
+    console.log(`Message already executed! Nothing else to do here`)
+    process.exit(1)
+  }
 
-  const depositRec = await depositTx.wait();
-  console.warn("deposit L1 receipt is:", depositRec.transactionHash);
+ //console.log(await l2ToL1Msg.status(hre.ethers.provider))
+ const timeToWaitMs = 1000 * 60
+ console.log(
+   "Waiting for the outbox entry to be created. This only happens when the L2 block is confirmed on L1, ~1 week after it's creation."
+ )
+ await l2ToL1Msg.waitUntilReadyToExecute(l2Provider, timeToWaitMs)
+ console.log('Outbox entry exists! Trying to execute now')
 
-  /**
-   * With the transaction confirmed on L1, we now wait for the L2 side (i.e., balance credited to L2) to be confirmed as well.
-   * Here we're waiting for the Sequencer to include the L2 message in its off-chain queue. The Sequencer should include it in under 10 minutes.
-   */
-  console.warn("Now we wait for L2 side of the transaction to be executed ⏳");
-  const l2Result = await depositRec.waitForL2(l2Provider);
-  /**
-   * The `complete` boolean tells us if the l1 to l2 message was successful
-   */
-  l2Result.complete
-    ? console.log(
-        `L2 message successful: status: ${
-          EthDepositStatus[await l2Result.message.status()]
-        }`
-      )
-    : console.log(
-        `L2 message failed: status ${
-          EthDepositStatus[await l2Result.message.status()]
-        }`
-      );
 
-  /**
-   * Our l2Wallet ETH balance should be updated now
-   */
-  const l2WalletUpdatedEthBalance = await l2Wallet.getBalance();
-  console.log(
-    `your L2 ETH balance is updated from ${l2WalletInitialEthBalance.toString()} to ${l2WalletUpdatedEthBalance.toString()}`
-  );
 };
 
 main().catch((err) => {

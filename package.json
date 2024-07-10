@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/eth-deposit.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "step:2":"ts-node src/2-withdrawal.ts",
+    "step:1":"ts-node src/1-withdrawal.ts"
   },
   "keywords": [],
   "author": "",
