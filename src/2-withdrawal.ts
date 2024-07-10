@@ -101,7 +101,10 @@ const main = async () => {
  )
  await l2ToL1Msg.waitUntilReadyToExecute(l2Provider, timeToWaitMs)
  console.log('Outbox entry exists! Trying to execute now')
+ const res = await l2ToL1Msg.execute(l2Provider)
 
+  const rec = await res.wait()
+  console.log('Done! Your transaction is executed', rec)
 
 };
 
