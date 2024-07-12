@@ -74,7 +74,6 @@ const main = async () => {
     customL2Network: l2Network,
   });
 
-
   const ethToL2DepositAmount = utils.parseEther("0.01");
   console.log("Eth deposit amount is:", ethToL2DepositAmount.toString());
 
