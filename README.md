@@ -1,4 +1,4 @@
-# Arbitrum Orbit Deposit and Withdrawal Scripts
+# Arbitrum Orbit Deposit and Withdrawal Scripts on SX testnet
 
 ## Introduction
 
