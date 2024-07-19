@@ -49,7 +49,8 @@ Please visit the [native-withdrawal.ts](./src/native-withdrawal.ts) file to unde
 
 ## Scripts for ERC20s
 In this example we will deposit and withdraw USDC from Sepolia to SX-testnet, USDC on Sepolia here [https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238](https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238)
-### Deposit Native Token
+
+### Deposit USDC
 
 ```typescript
 yarn erc20:deposit
@@ -72,7 +73,7 @@ Please visit the [erc20-deposit.ts](./src/erc20-deposit.ts) file to understand t
 
 ```
 
-### Withdrawal
+### Withdrawal USDC
 
 ```typescript
 yarn erc20:withdraw
