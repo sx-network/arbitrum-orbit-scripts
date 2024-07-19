@@ -5,6 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/eth-deposit.ts",
+    "erc20": "ts-node src/deposit-custom.ts",
+    "werc20": "ts-node src/withdraw-custom.ts",
+    "withdraw:contract": "ts-node src/withdraw-custom-contract.ts",
+    "erc20:gas": "ts-node src/deposit-gas-custom.ts",
     "build": "tsc",
     "step:2":"ts-node src/2-withdrawal.ts",
     "step:1":"ts-node src/1-withdrawal.ts"

@@ -6,6 +6,7 @@ import {
   addCustomNetwork,
   L2Network,
   addDefaultLocalNetwork,
+ 
 } from "@arbitrum/sdk";
 //import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
@@ -19,10 +20,12 @@ console.log("Environment Variables Loaded");
  */
 const walletPrivateKey: string = process.env.DEVNET_PRIVKEY as string;
 
-const l1Provider = new ethers.providers.JsonRpcProvider(process.env.L1RPC);
+//const l1Provider = new ethers.providers.JsonRpcProvider(process.env.L1RPC);
+const l1Provider = new ethers.providers.JsonRpcProvider("https://arb-sepolia.g.alchemy.com/v2/1kcWqynxqbmReSnettyXbJw6l0YFhmnQ");
+
 const l2Provider = new ethers.providers.JsonRpcProvider(process.env.L2RPC);
 const l1Wallet = new Wallet(walletPrivateKey, l1Provider);
-// const l2Wallet = new Wallet(walletPrivateKey, l2Provider);
+ const l2Wallet = new Wallet(walletPrivateKey, l2Provider);
 
 const main = async () => {
   // await arbLog("Deposit token using Arbitrum SDK");
@@ -39,15 +42,15 @@ const main = async () => {
     },
     tokenBridge: {
       l1CustomGateway: "",
-      l1ERC20Gateway: "",
-      l1GatewayRouter: "",
+      l1ERC20Gateway: "0x01E1bE90c617b076978b37aCA9552877a15a7006",
+      l1GatewayRouter: "0xf446986e261E84aB2A55159F3Fba60F7E8AeDdAF",
       l1MultiCall: "",
       l1ProxyAdmin: "",
       l1Weth: "",
       l1WethGateway: "",
       l2CustomGateway: "",
-      l2ERC20Gateway: "",
-      l2GatewayRouter: "",
+      l2ERC20Gateway: "0xdba116E322fd5bE8072E2BdDBDA096fed501586B",
+      l2GatewayRouter: "0xbFE42eF8429c5d5452E23b09910e35748eCe72CF",
       l2Multicall: "",
       l2ProxyAdmin: "",
       l2Weth: "",
@@ -68,16 +71,16 @@ const main = async () => {
   };
   console.log("L2 Network Reached");
   // register - needed for retryables
-  addCustomNetwork({
+   addCustomNetwork({
     customL2Network: l2Network,
   });
 
   console.log("Custom Network Added");
 
   // Add the default local network configuration to the SDK
-  addDefaultLocalNetwork();
+ // addDefaultLocalNetwork();
 
-  console.log("Default Local Network Added");
+  //console.log("Default Local Network Added");
 
   // Set up the Erc20Bridger
   const erc20Bridger = new Erc20Bridger(l2Network);
@@ -85,7 +88,7 @@ const main = async () => {
   console.log("Erc20 Bridger Set Up");
 
   // We get the address of L1 Gateway for our DappToken
-  const l1Erc20Address = "0xf5055e7C5Ea7b941E4ebad2F028Cb29962a3168C"; //GELATO CGT BLUEBERRY
+  const l1Erc20Address = "0x30620B64A9099Ef70C9AB5ECDB8a01D6e442Ec36"; 
 
   // Validate that the token address is correctly set
   if (!l1Erc20Address) {
@@ -106,7 +109,7 @@ const main = async () => {
     ERC20_ABI,
     l1Wallet
   );
-  console.log(l1Provider);
+
 
   // Get the expected L1 Gateway address
   const expectedL1GatewayAddress = await erc20Bridger.getL1GatewayAddress(
@@ -114,7 +117,7 @@ const main = async () => {
     l1Provider as Provider
   );
 
-  console.log("Expected L1 Gateway Address Retrieved");
+  console.log("Expected L1 Gateway Address Retrieved: ", expectedL1GatewayAddress);
 
   // Check if the expectedL1GatewayAddress is valid
   if (!expectedL1GatewayAddress || expectedL1GatewayAddress === "") {
@@ -131,54 +134,23 @@ const main = async () => {
     `Initial Bridge Token Balance: ${initialBridgeTokenBalance.toString()}`
   );
 
-  // Get the token decimals and compute the deposit amount
+  //Get the token decimals and compute the deposit amount
   const tokenDecimals = await erc20Contract.decimals();
-  const tokenAmount = ethers.utils.parseUnits("1", tokenDecimals);
-
-  // Approve the token transfer
-  console.log("Approving:");
-  const approveTx = await erc20Bridger.approveToken({
-    l1Signer: l1Wallet,
-    erc20L1Address: l1Erc20Address,
-  });
-
-  const approveRec = await approveTx.wait();
-  console.log(
-    `You successfully allowed the Arbitrum Bridge to spend CGT ${approveRec.transactionHash}`
-  );
-
-  // Deposit the token to L2
-  console.log("Transferring DappToken to L2:");
-  const depositTx = await erc20Bridger.deposit({
+  const tokenAmount = ethers.utils.parseEther("1")
+  console.log('Withdrawing:')
+  const withdrawTx = await erc20Bridger.withdraw({
     amount: tokenAmount,
-    erc20L1Address: l1Erc20Address,
-    l1Signer: l1Wallet,
-    l2Provider: l2Provider,
-  });
+    destinationAddress: l2Wallet.address,
+    erc20l1Address: l1Erc20Address,
+    l2Signer: l2Wallet,
+  })
+  const withdrawRec = await withdrawTx.wait()
+  console.log(`Token withdrawal initiated! 🥳 ${withdrawRec.transactionHash}`)
 
+  
   // Wait for L1 and L2 side of transactions to be confirmed
   console.log(
     `Deposit initiated: waiting for L2 retryable (takes 10-15 minutes; current time: ${new Date().toTimeString()}) `
-  );
-  const depositRec = await depositTx.wait();
-  const l2Result = await depositRec.waitForL2(l2Provider);
-
-  // Check if the L1 to L2 message was successful
-  l2Result.complete
-    ? console.log(
-        `L2 message successful: status: ${L1ToL2MessageStatus[l2Result.status]}`
-      )
-    : console.log(
-        `L2 message failed: status ${L1ToL2MessageStatus[l2Result.status]}`
-      );
-
-  // Get the final token balance of the Bridge
-  const finalBridgeTokenBalance = await erc20Contract.balanceOf(
-    expectedL1GatewayAddress
-  );
-
-  console.log(
-    `Final Bridge Token Balance: ${finalBridgeTokenBalance.toString()}`
   );
 };
 
