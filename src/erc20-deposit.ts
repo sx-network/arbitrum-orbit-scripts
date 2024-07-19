@@ -93,11 +93,10 @@ const main = async () => {
     `Initial Bridge Token Balance: ${initialBridgeTokenBalance.toString()}`
   );
 
-  //Get the token decimals and compute the deposit amount
-  const tokenDecimals = await erc20Contract.decimals();
+
   const tokenAmount = BigNumber.from(1000000)
 
-  const ethBridger = new EthBridger(l2Network);
+
   const approveTxGas = await erc20Bridger.approveToken({
     l1Signer: l1Wallet,
     erc20L1Address: "0x9c5EB9723728123AF896089b902CB17B44Fd09e6",
@@ -105,8 +104,6 @@ const main = async () => {
   const approveRecGas = await approveTxGas.wait();
 
 
-  // // Approve the token transfer
-  // console.log("Approving:");
   const approveTx = await erc20Bridger.approveToken({
     l1Signer: l1Wallet,
     erc20L1Address: l1Erc20Address,

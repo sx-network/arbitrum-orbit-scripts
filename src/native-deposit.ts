@@ -49,7 +49,7 @@ const main = async () => {
     l1Signer: l1Wallet
   });
   const approveRec = await approveTx.wait();
-  console.log('approve')
+
   console.log("Eth Bridger Set Up");
   //   console.log(ethBridger);
 

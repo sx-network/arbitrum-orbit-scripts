@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repository contains scripts for performing deposit and withdrawal operations using the Arbitrum SDK. The scripts allow you to deposit ETH from L1 to L2 and withdraw it back to L1, demonstrating the interoperability between Ethereum and Arbitrum networks.
+This repository contains scripts for performing deposit and withdrawal operations using the Arbitrum SDK. The scripts allow you to deposit the SX native token as well as USDC from Sepolia to SX-testnet and withdraw it back to L1, demonstrating the interoperability between Ethereum and Arbitrum networks.
 
 ## Setup
 
@@ -16,66 +16,70 @@ Before running the scripts, ensure you have the necessary dependencies installed
   - `L1RPC`: L1 RPC URL
   - `L2RPC`: L2 RPC URL
 
-## Scripts
+## Scripts for Native token 
 
-### Deposit
+Native token here: [https://sepolia.etherscan.io/address/0x9c5eb9723728123af896089b902cb17b44fd09e6](https://sepolia.etherscan.io/address/0x9c5eb9723728123af896089b902cb17b44fd09e6)
 
-#### Logic
+### Deposit Native Token
 
-1. **Initialize Providers and Wallets**:
-   - Set up L1 and L2 providers using RPC URLs.
-   - Create wallets using the provided private key.
-2. **Configure L2 Network**:
-   - Define and register a custom L2 network configuration.
-3. **Deposit ETH**:
-   - Specify the amount of ETH to deposit.
-   - Create an EthBridger instance.
-   - Execute the deposit and wait for confirmation on both L1 and L2.
+```typescript
+yarn native:deposit
+```
+Please visit the [native-deposit.ts](./src/native-deposit.ts) file to understand the process, worth noticing the requirement to approve the bridger to expend the native token
 
-User-triggered transaction on Parent Chain:
-[Transaction Link](https://sepolia.arbiscan.io/tx/0x717fbb8d3d59b32d952c6d0ba74e735e713ee4bc7828464413ff16133e8cf562)
+```typescript
+  const approveTx = await ethBridger.approveGasToken({
+    l1Signer: l1Wallet
+  });
+  const approveRec = await approveTx.wait();``
 
-Automatically triggered transaction to deposit on user's wallet on Orbit Chain:
-[Transaction Link](https://arb-blueberry.gelatoscout.com/tx/0xef94b28c7336946d03fce07cf4dd3bb4d32702d299c061516b7e541a6ae50a57)
+```
 
 ### Withdrawal
 
-#### Step 1: Trigger Withdrawal
-
-1. **Initialize Providers and Wallets**:
-   - Set up L1 and L2 providers using RPC URLs.
-   - Create wallets using the provided private key.
-2. **Configure L2 Network**:
-   - Define and register a custom L2 network configuration.
-3. **Trigger Withdrawal**:
-   - Retrieve the transaction receipt for the deposit.
-   - Get the L2 to L1 messages from the receipt.
-   - Check if the message has already been executed.
-   - Wait for the outbox entry to be created and then execute the withdrawal transaction on L2.
-
-Trigger withdrawal on Orbit Chain:
-[Transaction Link](https://arb-blueberry.gelatoscout.com/tx/0xcc4b67573a8fd6bd8e467a315a3486e603f98dec959318f0129aa8b7d82726aa)
-
-#### Step 2: Execute Withdrawal
-
-1. **Execute Withdrawal on L1**:
-   - Once the outbox entry is created, execute the transaction on the parent chain to complete the withdrawal process.
-
-Execute transaction on Parent Chain:
-[Transaction Link](https://sepolia.arbiscan.io/tx/0xc28fc294b482d4d77397811025bed3de5a0116eaaa1100efcf0fda18ef4f9aa0)
-
-## Running the scripts
-
-To run the scripts, follow these steps:
-
-```
-For deposits: npm run start
+```typescript
+yarn native:withdraw
 ```
 
-```
-For Withdraw Step 1: npm run step:1
+Please visit the [native-withdrawal.ts](./src/native-withdrawal.ts) file to understand the process, the withdraw was successful, once the challenge period (1 week) we will execute `yarn withdraw-execution` with following txhash to dinalize the withdraw on L1
+
+```typescript
+  let txnHash= "0x7c73bcd8ce223ea3bb20275e6274c8bd1e88079d8a4af016d871cf824036201d" 
 ```
 
+## Scripts for ERC20s
+In this example we will deposit and withdraw USDC from Sepolia to SX-testnet, USDC on Sepolia here [https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238](https://sepolia.etherscan.io/address/0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238)
+### Deposit Native Token
+
+```typescript
+yarn erc20:deposit
 ```
-For Withdraw Step 2: npm run step:2
+Please visit the [erc20-deposit.ts](./src/erc20-deposit.ts) file to understand the process, worth noticing the requirement to approve the erc20bridger to expend the native token and also to approve the USDC
+
+```typescript
+  const approveTxGas = await erc20Bridger.approveToken({
+    l1Signer: l1Wallet,
+    erc20L1Address: "0x9c5EB9723728123AF896089b902CB17B44Fd09e6",
+  });
+  const approveRecGas = await approveTxGas.wait();
+
+
+  const approveTx = await erc20Bridger.approveToken({
+    l1Signer: l1Wallet,
+    erc20L1Address: l1Erc20Address,
+  });
+  const approveRec = await approveTx.wait();
+
+```
+
+### Withdrawal
+
+```typescript
+yarn erc20:withdraw
+```
+
+Please visit the [erc20-withdrawal.ts](./src/erc20-withdrawal.ts) file to understand the process, the withdraw was successful, once the challenge period (1 week) we will execute `yarn withdraw-execution` with following txhash to dinalize the withdraw on L1
+
+```typescript
+    txnHash="0xc0372436dcc0e7eb70763f8e5b46cf0dad538a4a4965ddcd924667e32c5362c0"
 ```
