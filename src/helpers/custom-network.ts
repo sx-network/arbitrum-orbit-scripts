@@ -1,6 +1,6 @@
 import { L2Network } from "@arbitrum/sdk";
 
-export const l2Network: L2Network = {
+export const l2NetworkTestnet: L2Network = {
     chainID: 79479957,
     confirmPeriodBlocks: 20,
     ethBridge: {
@@ -38,4 +38,44 @@ export const l2Network: L2Network = {
     nitroGenesisL1Block: 0,
     depositTimeout: 900000,
     nativeToken: "0x9c5EB9723728123AF896089b902CB17B44Fd09e6",
+  };
+
+export const l2NetworkMainnet: L2Network = {
+    chainID: 4162,
+    confirmPeriodBlocks: 20,
+    ethBridge: {
+      inbox: "0xEa83E8907C89Bc0D9517632f0ba081972E328631",
+      bridge: "0xa104C0426e95a5538e89131DbB4163d230C35f86",
+      outbox: "0xB360b2f57c645E847148d7C479b7468AbF6F707d",
+      rollup: "0x36c6C69A6186D4475fc5c21181CD980Bd6E5e11F",
+      sequencerInbox: "0xD80a805c86C14c879420eC6acb366D04D318fC0C",
+    },
+    tokenBridge: {
+      l1CustomGateway: "",
+      l1ERC20Gateway: "0xB4968C66BECc8fb4f73b50354301c1aDb2Abaa91",
+      l1GatewayRouter: "0x5F00446D785421d65B50c192D7129e3C3906438A",
+      l1MultiCall: "",
+      l1ProxyAdmin: "",
+      l1Weth: "",
+      l1WethGateway: "",
+      l2CustomGateway: "",
+      l2ERC20Gateway: "0x214474E5399cc4C003A990E28a4379A1f1b64eE7",
+      l2GatewayRouter: "0xb77b85Bc59f7C48C21Aa32c6230CD4262Fa79f5b",
+      l2Multicall: "",
+      l2ProxyAdmin: "",
+      l2Weth: "",
+      l2WethGateway: "",
+    },
+    partnerChainID: 1,
+    isArbitrum: true,
+    blockTime: 0.25,
+    partnerChainIDs: [],
+    explorerUrl: "",
+    isCustom: true,
+    name: "SX Rollup",
+    retryableLifetimeSeconds: 7 * 24 * 60 * 60,
+    nitroGenesisBlock: 0,
+    nitroGenesisL1Block: 0,
+    depositTimeout: 900000,
+    nativeToken: "0xbe9F61555F50DD6167f2772e9CF7519790d96624",
   };

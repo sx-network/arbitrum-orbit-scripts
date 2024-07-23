@@ -9,7 +9,7 @@ import {
 //import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
 import { parseEther } from "ethers/lib/utils";
-import { l2Network } from "./helpers/custom-network";
+import { l2NetworkTestnet } from "./helpers/custom-network";
 dotenv.config();
 //requireEnvVariables(["DEVNET_PRIVKEY", "L1RPC", "L2RPC", "TOKEN_ADDRESS"]);
 
@@ -33,12 +33,12 @@ const main = async () => {
 
   // register - needed for retryables
   addCustomNetwork({
-    customL2Network: l2Network,
+    customL2Network: l2NetworkTestnet,
   });
 
 
 
-  const ethBridger = new EthBridger(l2Network)
+  const ethBridger = new EthBridger(l2NetworkTestnet)
 
   /**
    * First, let's check our L2 wallet's initial ETH balance and ensure there's some ETH to withdraw

@@ -11,7 +11,7 @@ import {
 } from "@arbitrum/sdk";
 //import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
-import { l2Network } from "./helpers/custom-network";
+import { l2NetworkTestnet } from "./helpers/custom-network";
 dotenv.config();
 //requireEnvVariables(["DEVNET_PRIVKEY", "L1RPC", "L2RPC", "TOKEN_ADDRESS"]);
 
@@ -37,14 +37,14 @@ const main = async () => {
   console.log()
   // register - needed for retryables
   addCustomNetwork({
-    customL2Network: l2Network,
+    customL2Network: l2NetworkTestnet,
   });
 
   const ethToL2DepositAmount = utils.parseEther("0.001");
   console.log("Eth deposit amount is:", ethToL2DepositAmount.toString());
 
   // Set up the Erc20Bridger
-  const ethBridger = new EthBridger(l2Network);
+  const ethBridger = new EthBridger(l2NetworkTestnet);
   const approveTx = await ethBridger.approveGasToken({
     l1Signer: l1Wallet
   });

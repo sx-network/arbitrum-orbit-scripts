@@ -1,5 +1,6 @@
 import { BigNumber, Wallet, ethers } from "ethers";
 import { Provider } from "@ethersproject/abstract-provider";
+import { L2Network } from "@arbitrum/sdk";
 import {
   Erc20Bridger,
   L1ToL2MessageStatus,
@@ -9,7 +10,7 @@ import {
 } from "@arbitrum/sdk";
 //import { arbLog, requireEnvVariables } from "arb-shared-dependencies";
 import dotenv from "dotenv";
-import { l2Network } from "./helpers/custom-network";
+import { l2NetworkTestnet, l2NetworkMainnet} from "./helpers/custom-network";
 dotenv.config();
 //requireEnvVariables(["DEVNET_PRIVKEY", "L1RPC", "L2RPC", "TOKEN_ADDRESS"]);
 
@@ -25,6 +26,15 @@ const l1Provider = new ethers.providers.JsonRpcProvider(process.env.L1RPC);
 const l2Provider = new ethers.providers.JsonRpcProvider(process.env.L2RPC);
 const l1Wallet = new Wallet(walletPrivateKey, l1Provider);
 // const l2Wallet = new Wallet(walletPrivateKey, l2Provider);
+
+let l2Network: L2Network
+if (process.env.PROD_MODE) {
+  console.log(`Using prod mode`)
+  l2Network = l2NetworkMainnet
+} else {
+  console.log(`Using dev mode`)
+  l2Network = l2NetworkTestnet
+}
 
 const main = async () => {
 
@@ -46,7 +56,7 @@ const main = async () => {
   console.log("Erc20 Bridger Set Up");
 
   // We get the address of L1 Gateway for our DappToken
-  const l1Erc20Address = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"; 
+  const l1Erc20Address = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"; 
 
   // Validate that the token address is correctly set
   if (!l1Erc20Address) {
@@ -94,12 +104,12 @@ const main = async () => {
   );
 
 
-  const tokenAmount = BigNumber.from(1000000)
+  const tokenAmount = BigNumber.from(1000000000)
 
 
   const approveTxGas = await erc20Bridger.approveToken({
     l1Signer: l1Wallet,
-    erc20L1Address: "0x9c5EB9723728123AF896089b902CB17B44Fd09e6",
+    erc20L1Address: l2Network.nativeToken!,
   });
   const approveRecGas = await approveTxGas.wait();
 
