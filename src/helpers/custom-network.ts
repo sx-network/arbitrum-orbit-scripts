@@ -42,7 +42,7 @@ export const l2NetworkTestnet: L2Network = {
 
 export const l2NetworkMainnet: L2Network = {
     chainID: 4162,
-    confirmPeriodBlocks: 20,
+    confirmPeriodBlocks: 45818,
     ethBridge: {
       inbox: "0xEa83E8907C89Bc0D9517632f0ba081972E328631",
       bridge: "0xa104C0426e95a5538e89131DbB4163d230C35f86",
